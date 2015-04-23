@@ -49,7 +49,7 @@ pool.acquire(function (err, client){
 ##Redis commands
 Most redis commands can be executed with implicit `acquire` and `release`
 ```javascript
-pool.command.get('mykey', function(err, resp) {
+pool.client.get('mykey', function(err, resp) {
 
 });
 ```
@@ -58,6 +58,21 @@ Or
 pool.sendCommand('get', 'mykey', function(err, resp) {
 
 });
+```
+##Test connection
+Helper function to test connection to Redis
+```javascript
+pool.testConnection.get(function(err, serverInfo) {
+  if (err) {
+    console.error('Redis is not available');
+  } else {
+    console.log('Redis version: ' + serverInfo.redis_version);
+  }
+});
+```
+##Pool status
+```javascript
+pool.status()
 ```
 ###Draining
 The pool should be drained gracefully

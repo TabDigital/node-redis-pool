@@ -15,8 +15,8 @@ class RedisPool
       create: @createClient.bind @
       destroy: @destroyClient.bind @
       validate: @validateClient.bind @
-    @command = {}
-    redisCommands.forEach (fnName) => @command[fnName] = @pool.pooled (client, args...) -> client[fnName].apply client, args
+    @client = {}
+    redisCommands.forEach (fnName) => @client[fnName] = @pool.pooled (client, args...) -> client[fnName].apply client, args
     @sendCommand =  @pool.pooled (client, args...) -> client.send_command.apply client, args
     @monitor()
 
@@ -83,15 +83,24 @@ class RedisPool
 
   validateClient: (client) -> client.poolClientStatus is 'ready'
 
+  #Test connection
+  testConnection: (callback)->
+    @pool.acquire (err, client) =>
+      return callback err if err?
+      serverInfo = client?.server_info
+      @pool.release client
+      callback null, serverInfo
+
+  status: ->
+    size: @pool.getPoolSize()
+    max: @pool.getMaxPoolSize()
+    available: @pool.availableObjectsCount()
+    waiting: @pool.waitingClientsCount()
+
   monitor: ->
     # Report pool statistics
     if @monitorInterval? and @status isnt 'drained'
-      @logInfo
-        redisPoolInfo:
-          size: "#{@pool.getPoolSize()}/#{@pool.getMaxPoolSize()}"
-          available: @pool.availableObjectsCount()
-          waiting: @pool.waitingClientsCount()
-      , 'Redis Pool: Status'
+      @logInfo redisPoolInfo: @status(), 'Redis Pool: Status'
       timeout = setTimeout @monitor.bind(@), @monitorInterval
       timeout.unref()
 

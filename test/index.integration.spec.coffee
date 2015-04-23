@@ -10,9 +10,17 @@ async           = require 'async'
 describe 'Redis Pool @integration Test', ->
   it 'should connect to redis and execute command', (done) ->
     pool = new RedisPool()
-    pool.command.set 'redisPoolTestKey', 'testValue', (err) ->
+    pool.client.set 'redisPoolTestKey', 'testValue', (err) ->
       should.not.exist err
-      pool.command.get 'redisPoolTestKey', (err, result) ->
+      pool.client.get 'redisPoolTestKey', (err, result) ->
         should.not.exist err
         result.should.eql 'testValue'
         done()
+
+  it 'should test redis connection', (done) ->
+    pool = new RedisPool()
+    pool.testConnection (err, serverInfo) ->
+      should.not.exist err
+      should.exist serverInfo
+      serverInfo.redis_version.should.not.empty
+      done()

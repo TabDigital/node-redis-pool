@@ -194,7 +194,7 @@ describe 'Redis Pool', ->
 
     it 'should execute redis command', (done) ->
       async.map redisCommands, (command, callback) ->
-        pool.command[command] arg1, arg2, arg3, (err, r1, r2) ->
+        pool.client[command] arg1, arg2, arg3, (err, r1, r2) ->
           should.not.exist err
           r1.should.be.exactly resp1
           r2.should.be.exactly resp2
